@@ -110,7 +110,7 @@ template<typename Type>
 struct ReadWriteLock {
 private:
     std::unique_ptr<Type> value;
-    std::shared_mutex mutex;
+    mutable std::shared_mutex mutex;
 
     template<typename LockType>
     using LockGuardType = LockGuard<Type, LockType>;
@@ -126,13 +126,13 @@ public:
 
     /// Exclusively locks the mutex for read-write access
     /// @return A LockGuard wrapper around the owned variable
-    [[nodiscard]] auto lock() {
+    [[nodiscard]] auto lock() & {
         return LockGuardType<details::UniqueLockType>(value.get(), mutex);
     }
 
     /// Shared locks the mutex for read access
     /// @return A LockGuard wrapper around the owned variable
-    [[nodiscard]] LockGuardType<SharedLockType> shared_lock() {
+    [[nodiscard]] LockGuardType<SharedLockType> shared_lock() const & {
         return LockGuardType<details::SharedLockType>(value.get(), mutex);
     }
 };
